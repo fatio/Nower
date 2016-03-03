@@ -1,0 +1,93 @@
+package com.project.enjoyit;
+
+import com.project.enjoyit.global.MyApplication;
+import com.project.enjoyit.utils.MyPlace;
+
+import android.app.Activity;
+import android.app.FragmentManager;
+import android.content.Context;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.Window;
+import android.widget.TextView;
+import android.widget.Toast;
+
+
+public class MainActivity extends Activity {
+
+	private static final String TAG = "MainActivity";
+
+	private TextView tvUsername;
+	private TextView tvMood;
+	private TextView tvAddress;
+	private TextView tvNeighbor;
+	private TextView tvMy;
+	
+	
+	private FragmentManager fragmentManager;
+	
+	private static Context context;
+	private final static int CODE_TOAST_MSG = 0;
+	public static Handler handler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case CODE_TOAST_MSG:
+				Toast.makeText(context, msg.obj.toString(),
+						Toast.LENGTH_SHORT).show();
+				break;
+			}
+		};
+	};
+
+	public void myToast(String msg) {
+		handler.obtainMessage(CODE_TOAST_MSG, msg).sendToTarget();
+	}
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);// »•µÙ±ÍÃ‚¿∏
+		setContentView(R.layout.activity_main);
+		context = MainActivity.this;
+		initView();
+		initListener();
+		initHeadText();
+		initFragments();
+	}
+	private void initView() {
+		tvUsername = (TextView) findViewById(R.id.tv_username);
+		tvMood = (TextView) findViewById(R.id.tv_mood);
+		tvAddress = (TextView) findViewById(R.id.tv_address);
+		tvNeighbor = (TextView) findViewById(R.id.bt_neighbor);
+		tvMy = (TextView) findViewById(R.id.bt_my);
+	}
+	private void initHeadText() {
+		tvUsername.setText(MyApplication.getUser().getUsername());
+		tvMood.setText(MyApplication.getUser().getMood());
+		MyApplication.getMyPlace();
+		tvAddress.setText(MyPlace.getMyLocation().getAddrStr());
+	}
+	private void initListener() {
+		tvMy.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		tvNeighbor.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
+	}
+	private void initFragments() {
+		fragmentManager = getFragmentManager();
+		
+	}
+
+}

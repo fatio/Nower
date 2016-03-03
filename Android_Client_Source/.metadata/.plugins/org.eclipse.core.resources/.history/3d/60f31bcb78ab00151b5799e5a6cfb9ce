@@ -1,0 +1,86 @@
+package com.project.enjoyit;
+
+import com.android.volley.toolbox.NetworkImageView;
+import com.project.enjoyit.global.MyApplication;
+import com.rxy.edittextmodel_master.ClearableEditText;
+
+import android.R.integer;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.Toast;
+
+
+public class LoginActivity extends Activity {
+	private static final String TAG = "LoginActivity";
+
+	private ClearableEditText etUsername;
+	private ClearableEditText etPassword;
+	private Button btRegister;
+	private Button btLogin;
+	private NetworkImageView niv_head;
+
+	private static final String sbDefaultAccountFileName = "DefaultAccount";
+	private static Context context;
+	private final static int CODE_TOAST_MSG = 0;
+	static Handler handler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case CODE_TOAST_MSG:
+				Toast.makeText(context, msg.obj.toString(),
+						Toast.LENGTH_SHORT).show();
+				break;
+			}
+		};
+	};
+	public static void myToast(String msg) {
+		handler.obtainMessage(CODE_TOAST_MSG, msg).sendToTarget();
+	}
+	
+	
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);//»•µÙ±ÍÃ‚¿∏ 
+        setContentView(R.layout.activity_login);
+        
+        context = LoginActivity.this;
+        
+        initView();
+        initListener();
+    }
+    
+    
+    
+	private void initListener() {
+		btRegister.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+				startActivity(intent);
+			}
+		});
+		
+	}
+	private void initView() {
+		etUsername = (ClearableEditText) findViewById(R.id.et_username_or_phone);
+		etPassword = (ClearableEditText) findViewById(R.id.et_password);
+		btRegister = (Button) findViewById(R.id.bt_register);
+		btLogin = (Button) findViewById(R.id.bt_login);
+		
+		niv_head = (NetworkImageView) findViewById(R.id.niv_head_pic);
+		niv_head.setDefaultImageResId(R.drawable.default_photo);
+		niv_head.setErrorImageResId(R.drawable.default_photo);
+	}
+
+
+
+}

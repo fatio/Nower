@@ -1,0 +1,43 @@
+package com.example.entity;
+
+import java.util.List;
+
+public class Comment {
+	private int comment_id;
+	private String comment_time;
+	private String comment_user;
+	private String commented_user;
+	private List<Comment> comments;
+	
+	
+	public int getComment_id() {
+		return comment_id;
+	}
+	public void setComment_id(int comment_id) {
+		this.comment_id = comment_id;
+	}
+	public String getComment_time() {
+		return comment_time;
+	}
+	public void setComment_time(String comment_time) {
+		this.comment_time = comment_time;
+	}
+	public String getComment_user() {
+		return comment_user;
+	}
+	public void setComment_user(String comment_user) {
+		this.comment_user = comment_user;
+	}
+	public String getCommented_user() {
+		return commented_user;
+	}
+	public void setCommented_user(String commented_user) {
+		this.commented_user = commented_user;
+	}
+	public List<Comment> getComments() {
+		return comments;
+	}
+	public void setComments(List<Comment> comments) {
+		this.comments = comments;
+	}
+}

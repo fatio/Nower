@@ -1,0 +1,95 @@
+package com.project.enjoyit.adapter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import me.drakeet.materialdialog.MaterialDialog;
+
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.Response.ErrorListener;
+import com.android.volley.Response.Listener;
+import com.project.enjoyit.R;
+import com.project.enjoyit.UserInfoActivity;
+import com.project.enjoyit.adapter.MyShowsListViewAdapter.ViewHolder;
+import com.project.enjoyit.entity.Comment;
+import com.project.enjoyit.entity.Message;
+import com.project.enjoyit.entity.Show;
+import com.project.enjoyit.global.MyApplication;
+import com.project.enjoyit.global.MyURL;
+
+import dmax.dialog.SpotsDialog;
+import android.R.integer;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.text.NoCopySpan.Concrete;
+import android.text.SpannableStringBuilder;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.BaseAdapter;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class MyMessageListViewAdapter extends BaseAdapter {
+	private static final String TAG = "MyMessageListViewAdapter";
+
+	private ArrayList<Message> messages;
+	private Context context;
+
+	public MyMessageListViewAdapter(Context context,
+			ArrayList<Message> messages) {
+		this.messages = messages;
+		this.context = context;
+	}
+
+	@Override
+	public int getCount() {
+		return messages.size();
+	}
+
+	@Override
+	public Object getItem(int arg0) {
+		return messages.get(arg0);
+	}
+
+	@Override
+	public long getItemId(int arg0) {
+		return arg0;
+	}
+	@Override
+	public View getView(final int position, View convertView, ViewGroup parent) {
+		ViewHolder viewHolder = null;
+		if (convertView == null) {
+			convertView = LayoutInflater.from(context).inflate(
+					R.layout.message_list_item, parent, false);
+			viewHolder = new ViewHolder();
+			viewHolder.tvMsg = (TextView) convertView
+					.findViewById(R.id.tv_msg);
+			convertView.setTag(viewHolder);
+		} else {
+			viewHolder = (ViewHolder) convertView.getTag();
+		}
+		
+				
+
+		return convertView;
+	}
+
+	public final class ViewHolder {
+		public TextView tvMsg;
+	}
+}

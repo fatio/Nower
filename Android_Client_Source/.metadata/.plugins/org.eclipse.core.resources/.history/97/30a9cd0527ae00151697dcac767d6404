@@ -1,0 +1,40 @@
+package com.project.enjoyit;
+
+import android.app.Activity;
+import android.content.Context;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.Window;
+import android.widget.Toast;
+
+public class SettingActivity extends Activity {
+
+	private static Context context;
+	private final static int CODE_TOAST_MSG = 0;
+	static Handler handler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case CODE_TOAST_MSG:
+				Toast.makeText(context, msg.obj.toString(), Toast.LENGTH_SHORT)
+						.show();
+				break;
+			}
+		};
+	};
+
+	public static void myToast(String msg) {
+		handler.obtainMessage(CODE_TOAST_MSG, msg).sendToTarget();
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		// requestWindowFeature(Window.FEATURE_NO_TITLE);// »•µÙ±ÍÃ‚¿∏
+		setContentView(R.layout.activity_setting);
+		context = SettingActivity.this;
+
+	}
+
+}

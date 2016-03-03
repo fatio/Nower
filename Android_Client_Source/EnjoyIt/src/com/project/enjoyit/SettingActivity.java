@@ -1,0 +1,136 @@
+package com.project.enjoyit;
+
+import java.util.HashMap;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.Response.ErrorListener;
+import com.android.volley.Response.Listener;
+import com.project.enjoyit.global.MyApplication;
+import com.project.enjoyit.global.MyURL;
+import com.rxy.edittextmodel_master.ClearableEditText;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.Toast;
+
+public class SettingActivity extends Activity {
+
+	private static final String TAG = "SettingActivity";
+
+	private ClearableEditText etBug;
+	private Button btSubmit;
+	private Button btLogout;
+
+	private static Context context;
+	private final static int CODE_TOAST_MSG = 0;
+	static Handler handler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case CODE_TOAST_MSG:
+				Toast.makeText(context, msg.obj.toString(), Toast.LENGTH_SHORT)
+						.show();
+				break;
+			}
+		};
+	};
+
+	public static void myToast(String msg) {
+		handler.obtainMessage(CODE_TOAST_MSG, msg).sendToTarget();
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		// requestWindowFeature(Window.FEATURE_NO_TITLE);// 去掉标题栏
+		setContentView(R.layout.activity_setting);
+		context = SettingActivity.this;
+
+		initView();
+		initListener();
+	}
+
+	private void initListener() {
+		btSubmit.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				String bug = etBug.getText().toString().trim();
+				if (bug.isEmpty()){
+					Toast.makeText(context, "空，也是一个bug！", Toast.LENGTH_SHORT).show();
+					return;
+				}
+				submitBug(bug);
+			}
+		});
+		btLogout.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				Intent intent = new Intent(Intent.ACTION_MAIN);
+				intent.addCategory(Intent.CATEGORY_HOME);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+				android.os.Process.killProcess(android.os.Process.myPid());
+
+			}
+		});
+
+	}
+
+	protected void submitBug(String bug) {
+		Listener<String> listener = new Response.Listener<String>() {
+			@Override
+			public void onResponse(String response) {
+				try {
+					JSONObject jsonObject = new JSONObject(response);
+					Log.e(TAG, jsonObject.getString("msg"));
+					if (jsonObject.getInt("code") == 1) {
+						Log.e(TAG, "my submit succeed");
+						myToast(jsonObject.getString("msg"));
+						
+					} else {
+						Log.e(TAG, "my submit ：" + response);
+						myToast("这肯定是个bug!");
+					}
+				} catch (JSONException e) {
+					Log.e(TAG, "my submit json bug：" + response);
+					e.printStackTrace();
+					myToast("这肯定是个bug!");
+				}
+			}
+		};
+		ErrorListener errorListener = new Response.ErrorListener() {
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				myToast("貌似没网络连接了，难道这也是个bug？");
+			}
+		};
+		HashMap<String, String> map = new HashMap<String, String>();
+		map.put("token", MyApplication.getUser().getToken());
+		map.put("bug", bug);
+		map.put("username", MyApplication.getUser().getUsername());
+		MyApplication.getMyVolley().addPostStringRequest(MyURL.SUBMIT_BUG, listener,
+				errorListener, map, TAG);
+		
+	}
+
+	private void initView() {
+		etBug = (ClearableEditText) findViewById(R.id.et_bug);
+		btSubmit = (Button) findViewById(R.id.bt_submit_bug);
+		btLogout = (Button) findViewById(R.id.bt_logout);
+	}
+
+}

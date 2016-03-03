@@ -1,0 +1,15 @@
+1451093605077	Move compilation unit
+1451099432715	Copy file
+1451111186424	Rename resource 'fragment_search.xml'
+1451111265564	Rename resource 'fragment_my_shows.xml'
+1451111366463	Rename type 'MyShowFragment'
+1451112120614	Rename resource 'fragment_shows.xml'
+1451112134562	Copy file
+1451117609193	Copy compilation unit
+1451119512380	Delete element
+1451139226481	Delete element
+1451139577479	Rename package 'com.project.enjoyit.sendView.utils'
+1451140722904	Rename resource 'color.xml'
+1451152904367	Copy file
+1451153176229	Rename resource 'gridview_image_item.xml'
+1451155003069	Rename type 'SelectImgGridViewAdapter'

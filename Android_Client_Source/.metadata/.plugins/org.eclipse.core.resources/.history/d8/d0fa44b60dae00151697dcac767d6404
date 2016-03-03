@@ -1,0 +1,94 @@
+package com.project.enjoyit;
+
+import com.project.enjoyit.view.MyScrollGridView;
+import com.project.enjoyit.view.MyScrollListView;
+import com.rxy.edittextmodel_master.ClearableEditText;
+
+import de.hdodenhof.circleimageview.CircleImageView;
+import android.app.Activity;
+import android.content.Context;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class ShowActivity extends Activity {
+	private final static String TAG = "ShowActivity";
+
+	public CircleImageView civHeadPic;
+	public TextView tvUsername;
+	public TextView tvTime;
+	public TextView tvContent;
+	public TextView tvSound;
+	public TextView tvLikesNum;
+	public ImageView ivLike;
+	public MyScrollGridView gvImages;
+	public TextView tvAddress;
+	public Button btShowComments;
+	public LinearLayout llCommentsContainer;
+	public Button btHideComments;
+	public ClearableEditText cetCommentText;
+	public Button btComment;
+	public MyScrollListView lvComment;
+	public TextView tvDelete;
+
+	private static Context context;
+	private final static int CODE_TOAST_MSG = 0;
+	static Handler handler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case CODE_TOAST_MSG:
+				Toast.makeText(context, msg.obj.toString(), Toast.LENGTH_SHORT)
+						.show();
+				break;
+			}
+		};
+	};
+
+	public static void myToast(String msg) {
+		handler.obtainMessage(CODE_TOAST_MSG, msg).sendToTarget();
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);// »•µÙ±ÍÃ‚¿∏
+		setContentView(R.layout.activity_show);
+		context = ShowActivity.this;
+
+		initView();
+
+	}
+
+	private void initView() {
+		civHeadPic = (CircleImageView) findViewById(R.id.civ_head_pic);
+		tvUsername = (TextView) findViewById(R.id.tv_username);
+		tvTime = (TextView) findViewById(R.id.tv_time);
+		tvContent = (TextView) findViewById(R.id.tv_content);
+		tvSound = (TextView) findViewById(R.id.tv_sound);
+		tvLikesNum = (TextView) findViewById(R.id.tv_likes_num);
+		ivLike = (ImageView) findViewById(R.id.iv_like);
+		gvImages = (MyScrollGridView) findViewById(R.id.gv_images);
+		tvAddress = (TextView) findViewById(R.id.tv_address);
+		btShowComments = (Button) findViewById(R.id.bt_show_comments);
+		btHideComments = (Button) findViewById(R.id.bt_hide_comments);
+		cetCommentText = (ClearableEditText) findViewById(R.id.cet_comment_text);
+		btComment = (Button) findViewById(R.id.bt_comment);
+		llCommentsContainer = (LinearLayout) findViewById(R.id.ll_comments_container);
+		lvComment = (MyScrollListView) findViewById(R.id.lv_comments);
+		tvDelete = (TextView) findViewById(R.id.tv_delete);
+
+	}
+
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+	}
+}

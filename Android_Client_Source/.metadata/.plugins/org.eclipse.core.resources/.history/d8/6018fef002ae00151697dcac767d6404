@@ -1,0 +1,126 @@
+package com.project.enjoyit.entity;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.content.Intent;
+import android.util.Log;
+
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.Response.ErrorListener;
+import com.android.volley.Response.Listener;
+import com.project.enjoyit.LoginActivity;
+import com.project.enjoyit.MainActivity;
+import com.project.enjoyit.global.MyApplication;
+import com.project.enjoyit.global.MyURL;
+
+public class Message {
+	private int message_id;
+	private int msg_type;
+	private int has_read;
+	private int from_user_id;
+	private int to_user_id;
+	private String send_time;
+	private String message;
+	private String msg_obj;
+
+
+	public void updateFromJSONObject(JSONObject jsonObject) throws JSONException{
+		message_id = jsonObject.getInt("message_id");
+		msg_type = jsonObject.getInt("msg_type");
+		has_read = jsonObject.getInt("has_read");
+		from_user_id = jsonObject.getInt("from_user_id");
+		to_user_id = jsonObject.getInt("to_user_id");
+		send_time = jsonObject.getString("send_time");
+		message = jsonObject.getString("message");;
+		msg_obj = jsonObject.getString("msg_obj");
+		Log.e("FFFF", send_time);
+	}
+	public String getSend_time() {
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");  
+		String t = "";
+        if (send_time != null) {
+        	t =format.format(send_time);
+        }  
+        return t;
+	}
+	public String getSend_time1(){
+		SimpleDateFormat format = new SimpleDateFormat("MM-dd-HH:mm:ss-yyyy");  
+		String t = "";
+        if (send_time != null) {
+        	t =format.format(send_time);
+        }  
+        return t;
+	}
+
+	public int getMessage_id() {
+		return message_id;
+	}
+
+	public void setMessage_id(int message_id) {
+		this.message_id = message_id;
+	}
+
+	public int getMsg_type() {
+		return msg_type;
+	}
+
+	public void setMsg_type(int msg_type) {
+		this.msg_type = msg_type;
+	}
+
+	public int getHas_read() {
+		return has_read;
+	}
+
+	public void setHas_read(int has_read) {
+		this.has_read = has_read;
+	}
+
+	public int getFrom_user_id() {
+		return from_user_id;
+	}
+
+	public void setFrom_user_id(int from_user_id) {
+		this.from_user_id = from_user_id;
+	}
+
+	public int getTo_user_id() {
+		return to_user_id;
+	}
+
+	public void setTo_user_id(int to_user_id) {
+		this.to_user_id = to_user_id;
+	}
+
+
+
+	public void setSend_time(String send_time) {
+		this.send_time = send_time;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public String getMsg_obj() {
+		return msg_obj;
+	}
+
+	public void setMsg_obj(String msg_obj) {
+		this.msg_obj = msg_obj;
+	}
+
+	
+	
+}

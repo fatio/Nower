@@ -1,0 +1,7 @@
+package com.project.enjoyit;
+
+import android.app.Fragment;
+
+public class MyShowFragment extends Fragment {
+
+}

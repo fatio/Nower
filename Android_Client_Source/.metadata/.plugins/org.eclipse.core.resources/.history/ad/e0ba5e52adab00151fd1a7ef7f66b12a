@@ -1,0 +1,100 @@
+package com.project.enjoyit;
+
+import com.android.volley.toolbox.NetworkImageView;
+
+
+import com.project.enjoyit.global.MyApplication;
+import com.project.enjoyit.global.MyURL;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.Bundle;
+import android.view.GestureDetector;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.Window;
+import android.widget.ImageView;
+
+public class ImageActivity extends Activity {
+	private NetworkImageView ivImage;
+	private String []imgnames;
+	private int pos = 0;
+	private GestureDetector gestureDetector; 
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		this.requestWindowFeature(Window.FEATURE_NO_TITLE);// È¥µô±êÌâÀ¸
+		setContentView(R.layout.activity_image);
+		ivImage = (NetworkImageView)findViewById(R.id.iv_image);
+		
+		gestureDetector = new GestureDetector(ImageActivity.this,onGestureListener); 
+	}
+	private GestureDetector.OnGestureListener onGestureListener =   
+	        new GestureDetector.SimpleOnGestureListener() {  
+	        @Override  
+	        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,  
+	                float velocityY) {  
+	            float x = e2.getX() - e1.getX();  
+	            float y = e2.getY() - e1.getY();  
+	  
+	            if (x > 0) {  //RIGHT
+	                if (pos == 0){
+	                	pos = imgnames.length-1;
+	                }else{
+	                	pos--;
+	                }
+	            } else if (x < 0) { //LEFT 
+	                if (pos == imgnames.length-1){
+	                	pos = 0;
+	                }else{
+	                	pos++;
+	                }
+	                
+	            }  
+	            String url = MyURL.GET_IMAGE_URL + imgnames[pos];
+	            ivImage.setImageUrl(url, MyApplication.getMyVolley().getImageLoader());
+	            return true;  
+	        }  
+	    };  
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.image, menu);
+		return true;
+	}
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+		Intent intent=getIntent();
+        if(intent!=null)
+        {
+            String imgname=intent.getStringExtra("imgnames");
+            pos = intent.getIntExtra("pos", 0);
+            imgnames = imgname.split("\\|");
+            if (pos >= imgnames.length){
+            	pos = 0;
+            }
+            String url = MyURL.GET_IMAGE_URL + imgnames[pos];
+            ivImage.setImageUrl(url, MyApplication.getMyVolley().getImageLoader());
+        }
+	}
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		return gestureDetector.onTouchEvent(event); 
+	}
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+}

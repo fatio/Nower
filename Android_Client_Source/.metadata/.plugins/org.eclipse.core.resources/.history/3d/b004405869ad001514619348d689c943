@@ -1,0 +1,42 @@
+package com.project.enjoyit;
+
+import com.project.enjoyit.entity.User;
+
+import de.hdodenhof.circleimageview.CircleImageView;
+import android.app.Activity;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.TextView;
+
+public class UserInfoActivity extends Activity {
+
+	private static User user;
+	private static String username;
+
+	private CircleImageView civHeadPic;
+	private TextView tvName;
+	private TextView tvMood;
+	private TextView tvSex;
+	private TextView tvAge;
+	private TextView tvRegTime;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_user_info);
+		initView();
+	}
+	private void initView() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+		username = this.getIntent().getExtras().getString("username");
+		updateView();
+	}
+
+}

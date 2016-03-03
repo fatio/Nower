@@ -1,0 +1,558 @@
+package com.project.enjoyit.adapter;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import me.drakeet.materialdialog.MaterialDialog;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.android.volley.Response;
+import com.android.volley.Response.ErrorListener;
+import com.android.volley.Response.Listener;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.ImageLoader.ImageListener;
+import com.baidu.a.a.a.a;
+import com.loopj.android.http.AsyncHttpClient;
+import com.project.enjoyit.ImageActivity;
+import com.project.enjoyit.MapActivity;
+import com.project.enjoyit.MyShowsFragment;
+import com.project.enjoyit.NeighborShowsFragment;
+import com.project.enjoyit.R;
+import com.project.enjoyit.entity.Comment;
+import com.project.enjoyit.entity.Show;
+import com.project.enjoyit.global.MyApplication;
+import com.project.enjoyit.global.MyURL;
+import com.project.enjoyit.view.MyScrollGridView;
+import com.project.enjoyit.view.MyScrollListView;
+import com.rxy.edittextmodel_master.ClearableEditText;
+
+import de.hdodenhof.circleimageview.CircleImageView;
+import dmax.dialog.SpotsDialog;
+import android.R.integer;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.webkit.WebView.FindListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class MyShowsListViewAdapter extends BaseAdapter {
+	private static final String TAG = "MyShowsListViewAdapter";
+
+	private Context context; // 运行上下文
+	private List<Show> shows; // 信息集合
+	private MediaPlayer player = null;
+	private Animation animation;
+	
+	public MyShowsListViewAdapter(Context context, List<Show> shows) {
+		this.context = context;
+		this.shows = shows;
+		animation = AnimationUtils.loadAnimation(context, R.anim.welcome_loading);
+	}
+
+	@Override
+	public int getCount() {
+		// TODO Auto-generated method stub
+		return shows.size();
+	}
+
+	@Override
+	public Object getItem(int i) {
+		// TODO Auto-generated method stub
+		return shows.get(i);
+	}
+
+	@Override
+	public long getItemId(int i) {
+		// TODO Auto-generated method stub
+		return i;
+	}
+
+	@Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+		ViewHolder viewHolder = null;
+		if (convertView == null) {
+			convertView = LayoutInflater.from(context).inflate(
+					R.layout.shows_list_item, null);
+			viewHolder = new ViewHolder();
+			initViewHolder(viewHolder, convertView);
+			convertView.setTag(viewHolder);
+		} else {
+			viewHolder = (ViewHolder) convertView.getTag();
+		}
+		initText(viewHolder, position);
+		initListener(viewHolder, position);
+		
+		viewHolder.btHideComments.setVisibility(View.GONE);
+		viewHolder.btShowComments.setVisibility(View.GONE);
+		viewHolder.llCommentsContainer.setVisibility(View.GONE);
+		return convertView;
+	}
+
+	private void initListener(final ViewHolder viewHolder, final int position) {
+		final Show show = shows.get(position);
+		viewHolder.gvImages.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
+					long arg3) {
+				Intent intent = new Intent(context, ImageActivity.class);
+				intent.putExtra("imgnames", show.getImage_files());
+				intent.putExtra("pos", pos);
+				Log.e(TAG, pos + " " + show.getImage_files());
+				context.startActivity(intent);
+			}
+		});
+		viewHolder.tvAddress.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				Intent intent = new Intent(context, MapActivity.class);
+				Bundle bundle = new Bundle();
+				bundle.putDouble("latitude", show.getLatitude());
+				bundle.putDouble("longitude", show.getLongitude());
+				intent.putExtras(bundle);
+				context.startActivity(intent);
+			}
+		});
+
+		viewHolder.btShowComments.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View view) {
+				if (viewHolder.btShowComments.getText().toString().trim()
+						.equals("查看评论")) {
+					viewHolder.llCommentsContainer.setVisibility(View.VISIBLE);
+					viewHolder.btShowComments.setText("隐藏评论");
+					//Log.e(TAG, "click");
+//					if (show.getAllComments().size() == 0){
+//						updateAllComments(show, viewHolder);
+//					}
+					updateAllComments(show, viewHolder);
+					
+				} else {
+					viewHolder.llCommentsContainer.setVisibility(View.GONE);
+					viewHolder.btShowComments.setText("查看评论");
+				}
+			}
+		});
+		viewHolder.btHideComments.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				viewHolder.llCommentsContainer.setVisibility(View.GONE);
+				viewHolder.btShowComments.setText("查看评论");
+			}
+		});
+		viewHolder.ivLike.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				if (show.isHas_liked()) {
+					show.setHas_liked(false);
+					viewHolder.ivLike.setImageResource(R.drawable.ic_like);
+				} else {
+					viewHolder.ivLike.startAnimation(animation);
+					//viewHolder.ivLike.setImageResource(R.drawable.image_hand);
+					show.setHas_liked(true);
+					viewHolder.ivLike.setImageResource(R.drawable.ic_liked);
+				}
+				click_like(show);
+			}
+		});
+
+		viewHolder.tvSound.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				if (player != null && player.isPlaying()) {
+					player.stop();
+					player.release();
+					Drawable drawable = context.getResources().getDrawable(
+							R.drawable.ic_sound_pause);
+					drawable.setBounds(0, 0, drawable.getMinimumWidth(),
+							drawable.getMinimumHeight());
+					viewHolder.tvSound.setCompoundDrawables(drawable, null,
+							null, null);
+
+				}
+				if (show.getAudio_file().isEmpty()
+						|| show.getAudio_file() == null) {
+					Toast.makeText(context, "ta什么也没说...", Toast.LENGTH_SHORT)
+							.show();
+					return;
+				}
+				player = MediaPlayer.create(context,
+						Uri.parse(MyURL.GET_AUDIO_URL + show.getAudio_file()));// 实例化对象，通过播放本机服务器上的一首音乐
+				playAudio(player, viewHolder);
+
+			}
+		});
+		viewHolder.tvDelete.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				final MaterialDialog dialog = new MaterialDialog(context);
+				dialog.setMessage("确定要删除吗？").setPositiveButton("确定", new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						del_show(show);
+						dialog.dismiss();
+					}
+				}).setNegativeButton("取消", new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+						dialog.dismiss();
+					}
+				});
+				dialog.show();
+			}
+		});
+		viewHolder.btComment.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				String content = viewHolder.cetCommentText.getText().toString().trim();
+				if (content.isEmpty()){
+					Toast.makeText(context, "空了！空了！", Toast.LENGTH_SHORT).show();
+					return;
+				}
+				postComment(content, show, viewHolder);
+			}
+		});
+	}
+
+
+	protected void postComment(String content, final Show show, final ViewHolder viewHolder) {
+		final AlertDialog loading = new SpotsDialog(context);
+		loading.show();
+		Listener<String> listener = new Listener<String>() {
+			@Override
+			public void onResponse(String response) {
+				try {
+					JSONObject jsonObject = new JSONObject(response);
+					int code = jsonObject.getInt("code");
+					if (code == 1){
+						Toast.makeText(context, "评论成功", Toast.LENGTH_SHORT).show();
+						viewHolder.cetCommentText.setText("");
+						//updateAllComments(show, viewHolder);
+					}else{
+						Toast.makeText(context, "评论失败", Toast.LENGTH_SHORT).show();
+					}
+					
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}finally{
+					loading.dismiss();
+				}
+			}
+		};
+		ErrorListener errorListener = new Response.ErrorListener() {
+
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				Log.e(TAG, "评论失败"+error.toString());
+				Toast.makeText(context, "评论失败，请检查网络连接...", Toast.LENGTH_SHORT).show();
+				loading.dismiss();
+			}
+		};
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("token", MyApplication.getUser().getToken());
+		map.put("username", MyApplication.getUser().getUsername());
+		map.put("to_show_id", show.getShow_id()+"");
+		map.put("content", content);
+		map.put("is_anonymous", 0+"");
+		
+		MyApplication.getMyVolley().addPostStringRequest(MyURL.POST_SHOW_COMMENT_URL, listener, errorListener, map, TAG);
+	}
+
+	protected void del_show(final Show show) {
+		final AlertDialog loading = new SpotsDialog(context);
+		loading.show();
+		
+		Listener<String> listener = new Listener<String>() {
+			@Override
+			public void onResponse(String response) {
+				try {
+					JSONObject jsonObject = new JSONObject(response);
+					int code = jsonObject.getInt("code");
+					if (code == 1){
+						Toast.makeText(context, "删除成功", Toast.LENGTH_SHORT).show();
+						MyShowsFragment.delShow(show);
+						NeighborShowsFragment.delShow(show);;
+					}else{
+						Toast.makeText(context, "删除失败", Toast.LENGTH_SHORT).show();
+					}
+					
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}finally{
+					loading.dismiss();
+				}
+			}
+		};
+		ErrorListener errorListener = new Response.ErrorListener() {
+
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				Log.e(TAG, "删除失败"+error.toString());
+				Toast.makeText(context, "删除失败，请检查网络连接...", Toast.LENGTH_SHORT).show();
+				loading.dismiss();
+			}
+		};
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("token", MyApplication.getUser().getToken());
+		map.put("username", MyApplication.getUser().getUsername());
+		map.put("show_id", show.getShow_id()+"");
+		MyApplication.getMyVolley().addPostStringRequest(MyURL.DEL_SHOW, listener, errorListener, map, TAG);
+	}
+
+	protected void playAudio(final MediaPlayer player,
+			final ViewHolder viewHolder) {
+		player.setLooping(false);// 设置不循环播放
+		player.start();// 开始播放音乐
+		Drawable drawable = context.getResources().getDrawable(
+				R.drawable.ic_sound_play);
+		drawable.setBounds(0, 0, drawable.getMinimumWidth(),
+				drawable.getMinimumHeight());
+		viewHolder.tvSound.setCompoundDrawables(drawable, null, null, null);
+		player.setOnCompletionListener(new OnCompletionListener() {
+			@Override
+			public void onCompletion(MediaPlayer arg0) {
+				player.stop();// 停止播放
+				player.release();
+				Drawable drawable = context.getResources().getDrawable(
+						R.drawable.ic_sound_pause);
+				drawable.setBounds(0, 0, drawable.getMinimumWidth(),
+						drawable.getMinimumHeight());
+				viewHolder.tvSound.setCompoundDrawables(drawable, null, null,
+						null);
+			}
+		});
+
+	}
+
+	protected void click_like(final Show show) {
+		Listener<String> listener = new Response.Listener<String>() {
+			@Override
+			public void onResponse(String response) {
+				try {
+					JSONObject jsonObject = new JSONObject(response);
+					if (jsonObject.getInt("code") == 1) {
+						Log.e(TAG, "加赞成功" + response);
+						show.setLikes(show.getLikes() + 1);
+					} else if (jsonObject.getInt("code") == -1) {
+						Log.e(TAG, "减赞成功" + response);
+						show.setLikes(show.getLikes() - 1);
+					}
+					MyShowsFragment.flushDatas();
+					NeighborShowsFragment.flushDatas();
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					Log.e(TAG, "json error like");
+				}
+			}
+		};
+		ErrorListener errorListener = new Response.ErrorListener() {
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				Log.e(TAG, "赞失败" + error.toString());
+				Toast.makeText(context, "请检查网络连接...", Toast.LENGTH_SHORT)
+						.show();
+
+			}
+		};
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("token", MyApplication.getUser().getToken());
+		map.put("from_user", MyApplication.getUser().getUsername());
+		map.put("to_show_id", show.getShow_id() + ""); 
+		MyApplication.getMyVolley().addPostStringRequest(
+				MyURL.ADD_SHOW_LIKE_URL, listener, errorListener, map, TAG);
+	}
+
+	private void initText(ViewHolder viewHolder, int position) {
+		Show show = shows.get(position); 
+		if (show.getUsername().equals(MyApplication.getUser().getUsername())){
+			viewHolder.tvDelete.setVisibility(View.VISIBLE);
+		}else{
+			viewHolder.tvDelete.setVisibility(View.GONE);
+		}
+		//完美解决       重复   还有tag没出
+		viewHolder.llCommentsContainer.setVisibility(View.GONE);
+		viewHolder.btShowComments.setText("查看评论");
+		
+		if (show.getIs_anonymous() == 1) {
+			viewHolder.tvUsername.setText("匿名者");
+			viewHolder.civHeadPic.setImageResource(R.drawable.head_cat);
+		}
+		else {
+			viewHolder.tvUsername.setText(show.getUsername());
+			String url = MyURL.GET_IMAGE_URL + show.getHead_pic();
+			String tag = (String) viewHolder.civHeadPic.getTag();
+			if (tag == null || !tag.equals(url)) {
+				ImageListener listener = ImageLoader.getImageListener(
+						viewHolder.civHeadPic, R.drawable.head_cat,
+						R.drawable.head_cat);
+				MyApplication.getMyVolley().getImageLoader().get(url, listener);
+				viewHolder.civHeadPic.setTag(url);
+			}
+		}
+		viewHolder.tvTime.setText(show.getShow_time());
+		viewHolder.tvContent.setText(show.getContent());
+		viewHolder.tvLikesNum.setText(show.getLikes() + "");
+		viewHolder.tvAddress.setText(show.getAddress());
+		if (show.isHas_liked()) {
+			viewHolder.ivLike.setImageResource(R.drawable.ic_liked);
+		} else {
+			viewHolder.ivLike.setImageResource(R.drawable.ic_like);
+		}
+
+//		String tag = (String) viewHolder.civHeadPic.getTag();
+//		if (tag == null || !tag.equals(show.getImage_files())) {
+//
+//		}
+		if (show.getImage_files().equals("")) {
+			viewHolder.gvImages.setVisibility(View.GONE);
+		} else {
+			viewHolder.gvImages.setVisibility(View.VISIBLE);
+			viewHolder.gvImages.setSelector(new ColorDrawable(
+					Color.TRANSPARENT));
+			MyGridViewAdapter adapter = new MyGridViewAdapter(context,
+					show.getImage_files());
+			viewHolder.gvImages.setAdapter(adapter);
+			viewHolder.gvImages.setTag(show.getImage_files());
+		}
+		
+		
+		
+		MyCommentsListViewAdapter adapter = new MyCommentsListViewAdapter(context, show.getAllComments(), show.getUsername());
+		viewHolder.lvComment.setAdapter(adapter);
+	}
+
+	private void initViewHolder(ViewHolder viewHolder, View convertView) {
+		viewHolder.civHeadPic = (CircleImageView) convertView
+				.findViewById(R.id.civ_head_pic);
+		viewHolder.tvUsername = (TextView) convertView
+				.findViewById(R.id.tv_username);
+		viewHolder.tvTime = (TextView) convertView.findViewById(R.id.tv_time);
+		viewHolder.tvContent = (TextView) convertView
+				.findViewById(R.id.tv_content);
+		viewHolder.tvSound = (TextView) convertView.findViewById(R.id.tv_sound);
+		viewHolder.tvLikesNum = (TextView) convertView
+				.findViewById(R.id.tv_likes_num);
+		viewHolder.ivLike = (ImageView) convertView.findViewById(R.id.iv_like);
+		viewHolder.gvImages = (MyScrollGridView) convertView
+				.findViewById(R.id.gv_images);
+		viewHolder.tvAddress = (TextView) convertView
+				.findViewById(R.id.tv_address);
+		viewHolder.btShowComments = (Button) convertView
+				.findViewById(R.id.bt_show_comments);
+		viewHolder.btHideComments = (Button) convertView
+				.findViewById(R.id.bt_hide_comments);
+		viewHolder.cetCommentText = (ClearableEditText) convertView
+				.findViewById(R.id.cet_comment_text);
+		viewHolder.btComment = (Button) convertView
+				.findViewById(R.id.bt_comment);
+		viewHolder.llCommentsContainer = (LinearLayout) convertView
+				.findViewById(R.id.ll_comments_container);
+		viewHolder.lvComment = (MyScrollListView) convertView
+				.findViewById(R.id.lv_comments);
+		viewHolder.tvDelete = (TextView) convertView
+				.findViewById(R.id.tv_delete);
+	}
+
+	public final class ViewHolder { // 自定义控件集合
+		public CircleImageView civHeadPic;
+		public TextView tvUsername;
+		public TextView tvTime;
+		public TextView tvContent;
+		public TextView tvSound;
+		public TextView tvLikesNum;
+		public ImageView ivLike;
+		public MyScrollGridView gvImages;
+		public TextView tvAddress;
+		public Button btShowComments;
+		public LinearLayout llCommentsContainer;
+		public Button btHideComments;
+		public ClearableEditText cetCommentText;
+		public Button btComment;
+		public MyScrollListView lvComment;
+		public TextView tvDelete;
+	}
+	
+	protected void updateAllComments(final Show show, final ViewHolder viewHolder) {
+		final AlertDialog loading = new SpotsDialog(context);
+		loading.show();
+		Listener<String> listener = new Listener<String>() {
+			@Override
+			public void onResponse(String response) {
+				try {
+					JSONObject jsonObject = new JSONObject(response);
+					int code = jsonObject.getInt("code");
+					if (code == 1){
+						Toast.makeText(context, "获取评论成功", Toast.LENGTH_SHORT).show();
+						
+						show.getAllComments().clear();
+						JSONArray jsonArray = jsonObject.getJSONArray("comments");
+						for (int i=0; i<jsonArray.length(); ++i){
+							Comment comment = new Comment();
+							comment.updateFromJSONObject(jsonArray.getJSONObject(i));
+							show.getAllComments().add(comment);
+						}
+						
+
+						MyCommentsListViewAdapter adapter = new MyCommentsListViewAdapter(context, show.getAllComments(), show.getUsername());
+						viewHolder.lvComment.setAdapter(adapter);
+						
+//						viewHolder.llCommentsContainer.setVisibility(View.VISIBLE);
+//						viewHolder.btShowComments.setText("隐藏评论");
+						
+					}else{
+						Toast.makeText(context, "获取评论失败", Toast.LENGTH_SHORT).show();
+					}
+					
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}finally{
+					loading.dismiss();
+				}
+			}
+		};
+		ErrorListener errorListener = new Response.ErrorListener() {
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				Log.e(TAG, "获取评论失败"+error.toString());
+				Toast.makeText(context, "获取评论失败，请检查网络连接...", Toast.LENGTH_SHORT).show();
+				loading.dismiss();
+			}
+		};
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("token", MyApplication.getUser().getToken());
+		map.put("username", show.getUsername());
+		map.put("show_id", show.getShow_id()+"");
+		MyApplication.getMyVolley().addPostStringRequest(MyURL.GET_ALL_SHOW_COMMENTS, listener, errorListener, map, TAG);
+	}
+}

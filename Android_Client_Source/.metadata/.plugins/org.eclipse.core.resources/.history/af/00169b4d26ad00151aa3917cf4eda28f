@@ -1,0 +1,264 @@
+package com.project.enjoyit;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.android.volley.Response;
+import com.android.volley.Response.ErrorListener;
+import com.android.volley.Response.Listener;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.NetworkImageView;
+import com.project.enjoyit.global.MyAlgorithm;
+import com.project.enjoyit.global.MyApplication;
+import com.project.enjoyit.global.MyURL;
+import com.rxy.edittextmodel_master.ClearableEditText;
+
+import dmax.dialog.SpotsDialog;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.Toast;
+
+public class LoginActivity extends Activity {
+	private static final String TAG = "LoginActivity";
+
+	private ClearableEditText etUsername;
+	private ClearableEditText etPassword;
+	private Button btRegister;
+	private Button btLogin;
+	private NetworkImageView niv_head;
+
+	public static final int CODE_REGISTER2LOGIN = 1;
+
+	private static final String sbDefaultAccountFileName = "DefaultAccount";
+	private static Context context;
+	private final static int CODE_TOAST_MSG = 0;
+	static Handler handler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case CODE_TOAST_MSG:
+				Toast.makeText(context, msg.obj.toString(), Toast.LENGTH_SHORT)
+						.show();
+				break;
+			}
+		};
+	};
+
+	public static void myToast(String msg) {
+		handler.obtainMessage(CODE_TOAST_MSG, msg).sendToTarget();
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);// 去掉标题栏
+		setContentView(R.layout.activity_login);
+
+		context = LoginActivity.this;
+
+		initView();
+		initListener();
+
+		restoreDefaultAccount();
+
+		// btLogin.performClick();
+		etUsername.requestFocus();
+		etPassword.requestFocus();
+		etUsername.requestFocus();
+	}
+
+	private void initListener() {
+		btRegister.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				Intent intent = new Intent(LoginActivity.this,
+						RegisterActivity.class);
+				startActivityForResult(intent, CODE_REGISTER2LOGIN);
+			}
+		});
+		btLogin.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				login();
+
+			}
+		});
+		etUsername.setOnFocusChangeListener(new OnFocusChangeListener() {
+
+			@Override
+			public void onFocusChange(View arg0, boolean hasFocus) {
+				if (hasFocus) {
+
+				} else {
+					String url = MyURL.GET_USER_HEAD_PIC + "?username="
+							+ etUsername.getText().toString().trim();
+					niv_head.setImageUrl(url, MyApplication.getMyVolley()
+							.getImageLoader());
+				}
+			}
+		});
+	}
+
+	protected void login() {
+		final String username = etUsername.getText().toString().trim();
+		String tmp = etPassword.getText().toString().trim();
+		if (username.isEmpty() || tmp.isEmpty()) {
+			Toast.makeText(LoginActivity.this, "用户名或密码不能为空", Toast.LENGTH_SHORT)
+					.show();
+			return;
+		}
+
+		if (tmp.length() != 32) {
+			tmp = MyAlgorithm.hashMd5(tmp);
+		}
+
+		final AlertDialog loading = new SpotsDialog(LoginActivity.this);
+		loading.setMessage("正在登陆中...");
+		loading.show();
+
+		final String password = tmp;
+		Log.e(TAG, username + " " + password);
+
+		Listener<String> listener = new Response.Listener<String>() {
+			@Override
+			public void onResponse(String response) {
+				try {
+					JSONObject res = new JSONObject(response);
+					// Log.e(TAG, res.toString());
+					myToast(res.getString("msg"));
+					if (res.getInt("code") == 1) {
+						String token = res.getString("token");
+						MyApplication.getUser().setToken(token);
+						MyApplication.getUser().setUsername(username);
+						MyApplication.getUser().setPassword(password);
+
+						SharedPreferences spDefaultAccount = getSharedPreferences(
+								sbDefaultAccountFileName, MODE_PRIVATE);
+						Editor editor = spDefaultAccount.edit();
+						editor.putString("username", username);
+						editor.putString("password", password);
+						editor.commit();
+
+						requestUserInfo();
+					}
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				} finally {
+					loading.dismiss();
+				}
+			}
+		};
+		ErrorListener errorListener = new Response.ErrorListener() {
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				error.printStackTrace();
+				myToast("是不是网络出问题了呢？");
+				loading.dismiss();
+			}
+
+		};
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("username", username);
+		map.put("password", password);
+		MyApplication.getMyVolley().addPostStringRequest(MyURL.LOGIN_URL,
+				listener, errorListener, map, TAG);
+	}
+
+	protected void requestUserInfo() {
+		Listener<String> listener = new Response.Listener<String>() {
+
+			@Override
+			public void onResponse(String response) {
+				try {
+					JSONObject jsonObject = new JSONObject(response);
+					if (jsonObject.getInt("code") == 1) {
+						Log.e(TAG, "取用户信息成功" );
+
+						MyApplication.getUser()
+								.updateFromJSONObject(jsonObject);
+
+						Intent intent = new Intent(LoginActivity.this,
+								MainActivity.class);
+						startActivity(intent);
+						finish();
+					} else {
+						Log.e(TAG, "获取用户信息失败：" + response);
+						myToast("获取用户信息失败");
+					}
+
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					Log.e(TAG, "获取用户信息失败：" + response);
+					myToast("解析失败，无法取得用户信息");
+				}
+			}
+		};
+		ErrorListener errorListener = new Response.ErrorListener() {
+
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				Log.e(TAG, "获取用户信息失败：");
+				myToast("是不是网络出问题了呢？");
+			}
+		};
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("token", MyApplication.getUser().getToken());
+		map.put("username", MyApplication.getUser().getUsername());
+		MyApplication.getMyVolley().addPostStringRequest(MyURL.GET_USER_INFO,
+				listener, errorListener, map, TAG);
+	}
+
+	private void initView() {
+		etUsername = (ClearableEditText) findViewById(R.id.et_username_or_phone);
+		etPassword = (ClearableEditText) findViewById(R.id.et_password);
+		btRegister = (Button) findViewById(R.id.bt_register);
+		btLogin = (Button) findViewById(R.id.bt_login);
+
+		niv_head = (NetworkImageView) findViewById(R.id.niv_head_pic);
+		niv_head.setDefaultImageResId(R.drawable.default_photo);
+		niv_head.setErrorImageResId(R.drawable.default_photo);
+	}
+
+	private void restoreDefaultAccount() {
+		SharedPreferences spDefaultAccount = getSharedPreferences(
+				sbDefaultAccountFileName, MODE_PRIVATE);
+		String username = spDefaultAccount.getString("username", "");
+		String password = spDefaultAccount.getString("password", "");
+		etUsername.setText(username);
+		etPassword.setText(password);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch (requestCode) {
+		case CODE_REGISTER2LOGIN:
+			if (resultCode == RESULT_OK) {
+				String username = data.getExtras().getString("username");
+				etUsername.setText(username);
+				etPassword.setText("");
+				Log.e(TAG, username);
+			}
+			break;
+
+		default:
+			break;
+		}
+	}
+
+}

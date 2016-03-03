@@ -1,0 +1,110 @@
+package com.project.enjoyit;
+
+import com.project.enjoyit.utils.ImageUtil;
+import com.project.enjoyit.view.SelectPicPopupWindow;
+import com.rxy.edittextmodel_master.ClearableEditText;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.Toast;
+
+public class RegisterActivity extends Activity {
+
+	private static final String TAG = "RegisterActivity";
+	
+	private ClearableEditText etUsername;
+	private ClearableEditText etPhone;
+	private ClearableEditText etPassword;
+	private ClearableEditText etRePassword;
+	private Button btRegister;
+	private Button btCancel;
+	private ImageButton ibHead;
+	
+	
+	
+	//自定义的弹出框类  
+    SelectPicPopupWindow menuWindow; 
+	/* 头像文件 */
+    private static final String IMAGE_FILE_NAME = "temp_head_image.jpg";
+    /* 请求识别码 */
+    private static final int CODE_GALLERY_REQUEST = 0xa0;
+    private static final int CODE_CAMERA_REQUEST = 0xa1;
+    private static final int CODE_RESULT_REQUEST = 0xa2;
+ // 裁剪后图片的宽(X)和高(Y),480 X 480的正方形。
+    private static int output_X = 160;
+    private static int output_Y = 160;
+    private String head_pic_name = "default_head.png";
+	
+	
+	
+	
+	
+	
+	private final static int CODE_TOAST_MSG = 0;
+	Handler handler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case CODE_TOAST_MSG:
+				Toast.makeText(RegisterActivity.this, msg.obj.toString(),
+						Toast.LENGTH_SHORT).show();
+				break;
+			case ImageUtil.CODE_UPLOADED_IMAGES:
+				head_pic_name = msg.obj.toString();
+				break;
+			}
+		}
+	};
+	public void myToast(String msg) {
+		handler.obtainMessage(CODE_TOAST_MSG, msg).sendToTarget();
+	}
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_register);
+		
+		initView();
+		initListener();
+	}
+
+	private void initView() {
+		etUsername = (ClearableEditText) findViewById(R.id.et_username);
+		etPhone = (ClearableEditText) findViewById(R.id.et_phone);
+		etPassword = (ClearableEditText) findViewById(R.id.et_password);
+		etRePassword = (ClearableEditText) findViewById(R.id.et_re_password);
+		btRegister = (Button) findViewById(R.id.bt_register);
+		btCancel = (Button) findViewById(R.id.bt_cancel);
+		ibHead = (ImageButton)findViewById(R.id.ib_head_pic);
+	}
+	private void initListener() {
+		btRegister.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		btCancel.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		ibHead.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+	}
+
+}

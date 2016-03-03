@@ -1,0 +1,62 @@
+package com.project.enjoyit.adapter;
+
+import java.util.ArrayList;
+
+import com.project.enjoyit.R;
+import com.project.enjoyit.entity.Comment;
+
+import android.content.Context;
+import android.text.NoCopySpan.Concrete;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.TextView;
+
+public class MyCommentsListViewAdapter extends BaseAdapter {
+	private static final String TAG = "MyCommentsListViewAdapter";
+	
+	private ArrayList<Comment> comments;
+	private Context context;
+	
+	public MyCommentsListViewAdapter(Context context, ArrayList<Comment> comments) {
+		this.comments = comments;
+		this.context = context;
+	}
+	@Override
+	public int getCount() {
+		return comments.size();
+	}
+	@Override
+	public Object getItem(int arg0) {
+		return comments.get(arg0);
+	}
+	@Override
+	public long getItemId(int arg0) {
+		return arg0;
+	}
+
+	@Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+		ViewHolder viewHolder = null;
+		if (convertView == null){
+			convertView = LayoutInflater.from(context).inflate(R.layout.comment_list_item, parent, false);
+			viewHolder = new ViewHolder();
+			viewHolder.tvText = (TextView)convertView.findViewById(R.id.tv_text);
+			convertView.setTag(viewHolder);
+		}else{
+			viewHolder = (ViewHolder)convertView.getTag();
+		}
+		setText(comments.get(position), viewHolder.tvText);
+		
+		
+		return convertView;
+	}
+	public final class ViewHolder{
+		public TextView tvText;
+	}
+	private void setText(Comment comment, TextView tvText) {
+		
+		
+	}
+}

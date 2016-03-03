@@ -1,0 +1,58 @@
+package com.project.enjoyit.adapter;
+
+import java.util.ArrayList;
+
+import android.R;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.webkit.WebView.FindListener;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+
+public class SelectImgGridViewAdapter extends BaseAdapter {
+	private ArrayList<Bitmap> bitmaps;
+	private Context context;
+	
+	public SelectImgGridViewAdapter(Context context, ArrayList<Bitmap> bitmaps) {
+		this.context = context;
+		this.bitmaps = bitmaps;
+	}
+
+	@Override
+	public int getCount() {
+		// TODO Auto-generated method stub
+		return bitmaps.size();
+	}
+
+	@Override
+	public Object getItem(int arg0) {
+		// TODO Auto-generated method stub
+		return bitmaps.get(arg0);
+	}
+
+	@Override
+	public long getItemId(int arg0) {
+		// TODO Auto-generated method stub
+		return arg0;
+	}
+
+	@Override
+	public View getView(int position, View convertview, ViewGroup parent) {
+		ViewHolder viewHolder = null;
+		if (convertview == null){
+			viewHolder = new ViewHolder();
+			convertview = LayoutInflater.from(context).inflate(R.layout.gridview_imageview_item, parent, false);
+			viewHolder.imageView = (ImageView)convertview.findViewById(R.id.imageview);
+		}
+		
+		return convertview;
+	}
+	
+	public final class ViewHolder{
+		public ImageView imageView;
+	}
+}
+

@@ -1,0 +1,111 @@
+package com.project.enjoyit;
+
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.ImageLoader.ImageListener;
+import com.project.enjoyit.entity.User;
+import com.project.enjoyit.global.MyApplication;
+import com.project.enjoyit.global.MyURL;
+import com.project.enjoyit.utils.MyNetworkUtil;
+
+import de.hdodenhof.circleimageview.CircleImageView;
+import android.app.Activity;
+import android.content.Context;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class MyInfoActivity extends Activity implements OnClickListener {
+	private static String TAG = "UserInfoActivity";
+	
+	private CircleImageView civHeadPic;
+	private TextView tvName;
+	private TextView tvMood;
+	private TextView tvSex;
+	private TextView tvAge;
+	private TextView tvRegTime;
+	
+	private User user;
+	
+	public static final int CODE_REGISTER2LOGIN = 1;
+
+	private static final String sbDefaultAccountFileName = "DefaultAccount";
+	private static Context context;
+	private final static int CODE_TOAST_MSG = 0;
+	static Handler handler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case CODE_TOAST_MSG:
+				Toast.makeText(context, msg.obj.toString(), Toast.LENGTH_SHORT)
+						.show();
+				break;
+			}
+		};
+	};
+
+	public static void myToast(String msg) {
+		handler.obtainMessage(CODE_TOAST_MSG, msg).sendToTarget();
+	}
+	
+	
+	
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_my_info);
+		
+		user = MyApplication.getUser();
+		
+		initView();
+		context = MyInfoActivity.this;
+		updateView();
+		initListener();
+	}
+	private void initListener() {
+		civHeadPic.setOnClickListener(this);
+		tvName.setOnClickListener(this);
+		tvMood.setOnClickListener(this);
+		tvSex.setOnClickListener(this);
+		tvAge.setOnClickListener(this);
+	}
+
+
+	private void initView() {
+		civHeadPic = (CircleImageView)findViewById(R.id.civ_head_pic);
+		tvName = (TextView)findViewById(R.id.tv_name);
+		tvMood = (TextView)findViewById(R.id.tv_mood);
+		tvSex = (TextView)findViewById(R.id.tv_sex);
+		tvAge = (TextView)findViewById(R.id.tv_age);
+		tvRegTime = (TextView)findViewById(R.id.tv_reg_time);
+		
+	}
+
+	protected void updateView() {
+		
+		ImageListener listener = ImageLoader.getImageListener(civHeadPic,  
+		        R.drawable.head_cat, R.drawable.head_cat);  
+		String url = MyURL.GET_USER_HEAD_PIC + "?username="+MyNetworkUtil.URLEncode(user.getUsername());
+		MyApplication.getMyVolley().getImageLoader().get(url, listener);
+		
+		tvName.setText("我是 "+user.getUsername());
+		tvMood.setText(user.getMood());
+		String sex = user.getSex()==1? "男" : (user.getSex()==0? "女" : "男 /女");
+		tvSex.setText("我是"+sex+"的");
+		tvAge.setText("我今年"+user.getAge()+"岁");
+		tvRegTime.setText("我是从"+user.getReg_time1()+"开始在这里玩的");
+	}
+
+
+
+
+	@Override
+	public void onClick(View arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+}

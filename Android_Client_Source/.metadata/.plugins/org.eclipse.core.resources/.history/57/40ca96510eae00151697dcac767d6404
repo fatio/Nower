@@ -1,0 +1,167 @@
+package com.project.enjoyit;
+
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.ImageLoader.ImageListener;
+import com.project.enjoyit.adapter.MyCommentsListViewAdapter;
+import com.project.enjoyit.adapter.MyGridViewAdapter;
+import com.project.enjoyit.entity.Show;
+import com.project.enjoyit.global.MyApplication;
+import com.project.enjoyit.global.MyURL;
+import com.project.enjoyit.view.MyScrollGridView;
+import com.project.enjoyit.view.MyScrollListView;
+import com.rxy.edittextmodel_master.ClearableEditText;
+
+import de.hdodenhof.circleimageview.CircleImageView;
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class ShowActivity extends Activity {
+	private final static String TAG = "ShowActivity";
+
+	public CircleImageView civHeadPic;
+	public TextView tvUsername;
+	public TextView tvTime;
+	public TextView tvContent;
+	public TextView tvSound;
+	public TextView tvLikesNum;
+	public ImageView ivLike;
+	public MyScrollGridView gvImages;
+	public TextView tvAddress;
+	public Button btShowComments;
+	public LinearLayout llCommentsContainer;
+	public Button btHideComments;
+	public ClearableEditText cetCommentText;
+	public Button btComment;
+	public MyScrollListView lvComment;
+	public TextView tvDelete;
+	
+	private static Show show = new Show();
+
+	private static Context context;
+	private final static int CODE_TOAST_MSG = 0;
+	static Handler handler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case CODE_TOAST_MSG:
+				Toast.makeText(context, msg.obj.toString(), Toast.LENGTH_SHORT)
+						.show();
+				break;
+			}
+		};
+	};
+
+	public static void myToast(String msg) {
+		handler.obtainMessage(CODE_TOAST_MSG, msg).sendToTarget();
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);// 去掉标题栏
+		setContentView(R.layout.activity_show);
+		context = ShowActivity.this;
+
+		initView();
+		initText();
+	}
+
+	private void initText() {
+		Show show = shows.get(position); 
+		if (show.getUsername().equals(MyApplication.getUser().getUsername())){
+			viewHolder.tvDelete.setVisibility(View.VISIBLE);
+		}else{
+			viewHolder.tvDelete.setVisibility(View.GONE);
+		}
+		//完美解决       重复   还有tag没出
+		viewHolder.llCommentsContainer.setVisibility(View.GONE);
+		viewHolder.btShowComments.setText("查看评论");
+		
+		if (show.getIs_anonymous() == 1) {
+			viewHolder.tvUsername.setText("匿名者");
+			viewHolder.civHeadPic.setImageResource(R.drawable.head_cat);
+		}
+		else {
+			viewHolder.tvUsername.setText(show.getUsername());
+			String url = MyURL.GET_IMAGE_URL + show.getHead_pic();
+			String tag = (String) viewHolder.civHeadPic.getTag();
+			if (tag == null || !tag.equals(url)) {
+				ImageListener listener = ImageLoader.getImageListener(
+						viewHolder.civHeadPic, R.drawable.head_cat,
+						R.drawable.head_cat);
+				MyApplication.getMyVolley().getImageLoader().get(url, listener);
+				viewHolder.civHeadPic.setTag(url);
+			}
+		}
+		viewHolder.tvTime.setText(show.getShow_time());
+		viewHolder.tvContent.setText(show.getContent());
+		viewHolder.tvLikesNum.setText(show.getLikes() + "");
+		viewHolder.tvAddress.setText(show.getAddress());
+		if (show.isHas_liked()) {
+			viewHolder.ivLike.setImageResource(R.drawable.ic_liked);
+		} else {
+			viewHolder.ivLike.setImageResource(R.drawable.ic_like);
+		}
+
+//		String tag = (String) viewHolder.civHeadPic.getTag();
+//		if (tag == null || !tag.equals(show.getImage_files())) {
+//
+//		}
+		if (show.getImage_files().equals("")) {
+			viewHolder.gvImages.setVisibility(View.GONE);
+		} else {
+			viewHolder.gvImages.setVisibility(View.VISIBLE);
+			viewHolder.gvImages.setSelector(new ColorDrawable(
+					Color.TRANSPARENT));
+			MyGridViewAdapter adapter = new MyGridViewAdapter(context,
+					show.getImage_files());
+			viewHolder.gvImages.setAdapter(adapter);
+			viewHolder.gvImages.setTag(show.getImage_files());
+		}
+		
+		
+		
+		MyCommentsListViewAdapter adapter = new MyCommentsListViewAdapter(context, show.getAllComments(), show.getUsername(), show.getIs_anonymous());
+		viewHolder.lvComment.setAdapter(adapter);
+		viewHolder.lvComment.setTag(adapter);
+		
+	}
+
+	private void initView() {
+		civHeadPic = (CircleImageView) findViewById(R.id.civ_head_pic);
+		tvUsername = (TextView) findViewById(R.id.tv_username);
+		tvTime = (TextView) findViewById(R.id.tv_time);
+		tvContent = (TextView) findViewById(R.id.tv_content);
+		tvSound = (TextView) findViewById(R.id.tv_sound);
+		tvLikesNum = (TextView) findViewById(R.id.tv_likes_num);
+		ivLike = (ImageView) findViewById(R.id.iv_like);
+		gvImages = (MyScrollGridView) findViewById(R.id.gv_images);
+		tvAddress = (TextView) findViewById(R.id.tv_address);
+		btShowComments = (Button) findViewById(R.id.bt_show_comments);
+		btHideComments = (Button) findViewById(R.id.bt_hide_comments);
+		cetCommentText = (ClearableEditText) findViewById(R.id.cet_comment_text);
+		btComment = (Button) findViewById(R.id.bt_comment);
+		llCommentsContainer = (LinearLayout) findViewById(R.id.ll_comments_container);
+		lvComment = (MyScrollListView) findViewById(R.id.lv_comments);
+		tvDelete = (TextView) findViewById(R.id.tv_delete);
+
+	}
+
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+	}
+}

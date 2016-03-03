@@ -1,0 +1,37 @@
+package com.project.enjoyit.global;
+
+
+public class MyURL {
+
+	//一定要加 http:// 否则空指针
+//	public static final String BASE_URL = "http://192.168.191.1:8080";
+	public static final String BASE_URL = "http://121.42.167.154:8080";
+	
+	public static String UPLOAD_LOCATION_URL = BASE_URL + "/upload_location/";
+	public static String UPLOAD_IMAGE_URL = BASE_URL + "/upload_image/";
+	public static String UPLOAD_AUDIO_URL = BASE_URL + "/upload_audio/";
+	
+	public static String REGISTER_URL = BASE_URL + "/register/"; 
+	public static String LOGIN_URL = BASE_URL + "/login/"; 
+	public static String UPDATE_PASSWORD_URL = BASE_URL + "/update_password/";     
+	public static String UPDATE_MOOD_URL = BASE_URL +  "/update_mood/";
+	public static String GET_USER_HEAD_PIC = BASE_URL + "/get_head_pic/";
+	
+	public static String GET_IMAGE_URL = BASE_URL + "/get_image/";
+	public static String GET_AUDIO_URL = BASE_URL + "/get_audio/";
+	
+	public static String GET_USER_INFO = BASE_URL + "/get_user_info/";
+	public static String GET_MY_SHOWS_URL = BASE_URL + "/get_my_shows/";
+	
+	public static String GET_NEIGHBOR_SHOWS_URL = BASE_URL + "/get_neighbor_shows/";
+	public static String POST_SHOW = BASE_URL + "/post_show/";
+	public static String DEL_SHOW = BASE_URL + "/del_show/";
+	
+	
+	public static String ADD_SHOW_LIKE_URL = BASE_URL + "/add_show_like/";
+	
+	public static String POST_SHOW_COMMENT_URL = BASE_URL + "/post_show_comment/";
+	public static String POST_COMMENT_COMMENT_URL = BASE_URL + "/post_comment_comment/";
+	
+	public static String GET_ALL_SHOW_COMMENTS = BASE_URL + "/get_all_show_comments/";
+}

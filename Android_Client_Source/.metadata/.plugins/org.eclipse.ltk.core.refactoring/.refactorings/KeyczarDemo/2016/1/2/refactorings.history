@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy 5 elements to &apos;libs&apos;&#x0D;&#x0A;- Original project: &apos;KeyczarDemo&apos;&#x0D;&#x0A;- Destination element: &apos;libs&apos;&#x0D;&#x0A;- Original elements:&#x0D;&#x0A;     gson-2.2.2.jar&#x0D;&#x0A;     keyczar-0.71f-060112.jar&#x0D;&#x0A;     log4j-over-slf4j-1.5.8.jar&#x0D;&#x0A;     scprov-jdk15on-1.47.0.1.jar&#x0D;&#x0A;     slf4j-android-1.5.8.jar" description="Copy files" element1="libs/gson-2.2.2.jar" element2="libs/keyczar-0.71f-060112.jar" element3="libs/log4j-over-slf4j-1.5.8.jar" element4="libs/scprov-jdk15on-1.47.0.1.jar" element5="libs/slf4j-android-1.5.8.jar" files="5" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1452310944420" target="/EnjoyIt/libs" units="0" version="1.0"/>
+</session>

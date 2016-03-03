@@ -1,0 +1,31 @@
+package com.project.enjoyit.global;
+
+
+import com.project.enjoyit.utils.MyNetworkUtil;
+import com.project.enjoyit.utils.MyVolley;
+
+import android.app.Application;
+
+public class MyApplication extends Application {
+	private static final String TAG = "MyApplication";
+
+	private static MyNetworkUtil myNetworkUtil;
+	private static MyVolley myVolley;
+	
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		SDKInitializer.initialize(getApplicationContext());
+		
+		myNetworkUtil = new MyNetworkUtil();
+		myNetworkUtil.initNetworkEnvironment(getApplicationContext());
+		myVolley = new MyVolley(this);
+	}
+
+	public static MyNetworkUtil getMyNetworkUtil() {
+		return myNetworkUtil;
+	}
+	public static MyVolley getMyVolley(){
+		return myVolley;
+	}
+}

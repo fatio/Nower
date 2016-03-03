@@ -1,0 +1,256 @@
+package com.project.enjoyit.utils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.NetworkResponse;
+import com.android.volley.ParseError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
+import com.project.enjoyit.global.MyApplication;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+import android.view.View;
+
+public class ImageUtil {
+	private static final String TAG = "ImageUtil";
+	public static final int CODE_UPLOADED_IMAGES = 0x55;
+	
+    public static void uploadImg(Context context, final Bitmap bitmap, String url, final Handler handler){
+
+        UploadApi.uploadImg(bitmap, url, new ResponseListener<String>() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "图片上传出错"+error.toString());
+            }
+            @Override
+            public void onResponse(String response) {
+                try {
+                	if(bitmap.isRecycled()==false) //如果没有回收         
+                        bitmap.recycle();
+					JSONObject jsonObject = new JSONObject(response);
+					Log.e(TAG, jsonObject.getString("msg"));
+					Log.e(TAG, jsonObject.getString("filenames"));
+					Message msg = new Message();
+					msg.what = CODE_UPLOADED_IMAGES;
+					msg.obj = jsonObject.getString("filenames");
+					handler.sendMessage(msg);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+                
+            }
+        }) ;
+    }
+    public static void uploadImgs(Context context, ArrayList<Bitmap> bitmaps, String url, final Handler handler){
+    	if (bitmaps.size() == 0){
+    		Message msg = new Message();
+			msg.what = CODE_UPLOADED_IMAGES;
+			msg.obj = "";
+			handler.sendMessage(msg);
+			return;
+    	}
+        UploadApi.uploadImgs(bitmaps, url, new ResponseListener<String>() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "图片上传出错"+error.toString());
+            }
+            @Override
+            public void onResponse(String response) {
+            	try {
+					JSONObject jsonObject = new JSONObject(response);
+					Log.e(TAG, jsonObject.getString("msg"));
+					Log.e(TAG, jsonObject.getString("filenames"));
+					Message msg = new Message();
+					msg.what = CODE_UPLOADED_IMAGES;
+					msg.obj = jsonObject.getString("filenames");
+					handler.sendMessage(msg);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+            }
+        }) ;
+    }
+}
+class UploadApi {
+
+    /**
+     * 上传图片接口
+     * @param bitmap 需要上传的图片
+     * @param listener 请求回调
+     */
+    public static void uploadImg(Bitmap bitmap, String url, ResponseListener listener){
+        List<FormImage> imageList = new ArrayList<FormImage>() ;
+        imageList.add(new FormImage(bitmap)) ;
+        Request request = new PostUploadRequest(url,imageList,listener) ;
+        MyApplication.getMyVolley().getRequestQueue().add(request) ;
+    }
+    public static void uploadImgs(ArrayList<Bitmap> bitmaps, String url, ResponseListener listener){
+        List<FormImage> imageList = new ArrayList<FormImage>() ;
+        for (Bitmap bitmap : bitmaps){
+        	imageList.add(new FormImage(bitmap));
+        }
+        Request request = new PostUploadRequest(url,imageList,listener) ;
+        MyApplication.getMyVolley().getRequestQueue().add(request) ;
+    }
+}
+class FormImage {
+    //参数的名称
+    private String mName ;
+    //文件名
+    private String mFileName ;
+    //文件的 mime，需要根据文档查询
+    private String mMime ;
+    //需要上传的图片资源，因为这里测试为了方便起见，直接把 bigmap 传进来，真正在项目中一般不会这般做，而是把图片的路径传过来，在这里对图片进行二进制转换
+    private Bitmap mBitmap;
+
+    public FormImage(Bitmap mBitmap) {
+        this.mBitmap = mBitmap;
+    }
+
+    public String getName() {
+//        return mName;
+//测试，把参数名称写死
+        return "file[]" ;
+    }
+
+    public String getFileName() {
+    //测试，直接写死文件的名字
+        return "test.png";
+    }
+    //对图片进行二进制转换
+    public byte[] getValue() {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream() ;
+        mBitmap.compress(Bitmap.CompressFormat.JPEG,80,bos) ;
+        return bos.toByteArray();
+    }
+    //因为我知道是 png 文件，所以直接根据文档查的
+    public String getMime() {
+        return "image/*";
+    }
+}
+interface ResponseListener<T> extends Response.ErrorListener,Response.Listener<T> {
+
+}
+class PostUploadRequest extends Request<String> {
+
+    /**
+     * 正确数据的时候回掉用
+     */
+    private ResponseListener mListener ;
+    /*请求 数据通过参数的形式传入*/
+    private List<FormImage> mListItem ;
+
+    private String BOUNDARY = "=----WebKitFormBoundaryBYN5DeOb2fxyG5wa"; //数据分隔线
+    private String MULTIPART_FORM_DATA = "multipart/form-data";
+
+    public PostUploadRequest(String url, List<FormImage> listItem, ResponseListener listener) {
+        super(Method.POST, url, listener);
+        this.mListener = listener ;
+        setShouldCache(false);
+        mListItem = listItem ;
+        //设置请求的响应事件，因为文件上传需要较长的时间，所以在这里加大了，设为5秒
+        setRetryPolicy(new DefaultRetryPolicy(5000,DefaultRetryPolicy.DEFAULT_MAX_RETRIES,DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+    }
+
+    /**
+     * 这里开始解析数据
+     * @param response Response from the network
+     * @return
+     */
+    @Override
+    protected Response<String> parseNetworkResponse(NetworkResponse response) {
+        try {
+            String mString =
+                    new String(response.data, HttpHeaderParser.parseCharset(response.headers));
+            return Response.success(mString,
+                    HttpHeaderParser.parseCacheHeaders(response));
+        } catch (UnsupportedEncodingException e) {
+            return Response.error(new ParseError(e));
+        }
+    }
+
+    /**
+     * 回调正确的数据
+     * @param response The parsed response returned by
+     */
+    @Override
+    protected void deliverResponse(String response) {
+        mListener.onResponse(response);
+    }
+
+    @Override
+    public byte[] getBody() throws AuthFailureError {
+        if (mListItem == null||mListItem.size() == 0){
+            return super.getBody() ;
+        }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream() ;
+        int N = mListItem.size() ;
+        FormImage formImage ;
+        for (int i = 0; i < N ;i++){
+            formImage = mListItem.get(i) ;
+            StringBuffer sb= new StringBuffer() ;
+            /*第一行*/
+            //`"--" + BOUNDARY + "\r\n"`
+            sb.append("--"+BOUNDARY);
+            sb.append("\r\n") ;
+            /*第二行*/
+            //Content-Disposition: form-data; name="参数的名称"; filename="上传的文件名" + "\r\n"
+            sb.append("Content-Disposition: form-data;");
+            sb.append(" name=\"");
+            sb.append(formImage.getName()) ;
+            sb.append("\"") ;
+            sb.append("; filename=\"") ;
+            sb.append(formImage.getFileName()) ;
+            sb.append("\"");
+            sb.append("\r\n") ;
+            /*第三行*/
+            //Content-Type: 文件的 mime 类型 + "\r\n"
+            sb.append("Content-Type: ");
+            sb.append(formImage.getMime()) ;
+            sb.append("\r\n") ;
+            /*第四行*/
+            //"\r\n"
+            sb.append("\r\n") ;
+            try {
+                bos.write(sb.toString().getBytes("utf-8"));
+                /*第五行*/
+                //文件的二进制数据 + "\r\n"
+                bos.write(formImage.getValue());
+                bos.write("\r\n".getBytes("utf-8"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        /*结尾行*/
+        //`"--" + BOUNDARY + "--" + "\r\n"`
+        String endLine = "--" + BOUNDARY + "--" + "\r\n" ;
+        try {
+            bos.write(endLine.toString().getBytes("utf-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bos.toByteArray();
+    }
+    //Content-Type: multipart/form-data; boundary=----------8888888888888
+    @Override
+    public String getBodyContentType() {
+        return "multipart/form-data; boundary="+BOUNDARY;
+    }
+}

@@ -1,0 +1,170 @@
+package com.project.enjoyit.utils;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.content.Context;
+import android.util.Log;
+
+import com.android.volley.Response;
+import com.android.volley.Response.ErrorListener;
+import com.android.volley.Response.Listener;
+import com.android.volley.VolleyError;
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.baidu.location.LocationClientOption.LocationMode;
+import com.project.enjoyit.entity.MyLocation;
+import com.project.enjoyit.global.MyApplication;
+import com.project.enjoyit.global.MyURL;
+
+public class MyPlace {
+	private static final String TAG = "MyPlace";
+	
+	private static LocationClient mLocationClient;// 定位SDK的核心类
+	private static MyLocationListener mMyLocationListener;// 定义监听类
+	private static MyLocation myLocation = new MyLocation();
+	private static boolean failedUpload;
+	
+	public static void stop(){
+		if (mLocationClient.isStarted()){
+			mLocationClient.stop();
+			Log.e(TAG, "定位关闭");
+		}
+	}
+	public static void start(){
+		if (!mLocationClient.isStarted()){
+			mLocationClient.registerLocationListener(mMyLocationListener);
+			mLocationClient.setLocOption(getDefaultLocationClientOption());
+			mLocationClient.start();
+			Log.e(TAG, "定位开启");
+		}
+	}
+	public MyPlace(Context context) {
+		mLocationClient = new LocationClient(context);
+		mMyLocationListener = new MyLocationListener();
+		mLocationClient.registerLocationListener(mMyLocationListener);
+		mLocationClient.setLocOption(getDefaultLocationClientOption());
+		mLocationClient.start();
+		
+		failedUpload = true;
+	}
+	
+	public static MyLocation getMyLocation() {
+		return myLocation;
+	}
+	
+	/**
+	 * 实现实位回调监听
+	 */
+	public class MyLocationListener implements BDLocationListener {
+
+		public void onReceiveLocation(BDLocation location) {
+			
+			//Log.e(TAG, location.getAddrStr());
+			
+			uploadMyLocation(location);
+
+			setMyLocation(location);
+		}
+
+		private void setMyLocation(BDLocation location) {
+			String address = location.getProvince() + location.getCity()
+					+ location.getDistrict() + location.getStreet();
+			address = address.replace("null", "");
+			
+			myLocation.setTime(location.getTime());
+			myLocation.setLocType(location.getLocType());
+			myLocation.setLatitude(location.getLatitude());
+			myLocation.setLongitude(location.getLongitude());
+			myLocation.setRadius(location.getRadius());
+			myLocation.setCountryCode(location.getCountryCode());
+			myLocation.setCountry(location.getCountry());
+			myLocation.setProvince(location.getProvince());
+			myLocation.setCityCode(location.getCityCode());
+			myLocation.setCity(location.getCity());
+			myLocation.setDistrict(location.getDistrict());
+			myLocation.setStreetNumber(location.getStreetNumber());
+			myLocation.setStreet(location.getStreet());
+			myLocation.setAddrStr(address);
+			myLocation.setLocationDescribe(location.getLocationDescribe());
+			myLocation.setDirection(location.getDirection());
+			myLocation.setPoiList(location.getPoiList());
+			myLocation.setBuildingID(location.getBuildingID());
+			myLocation.setBuildingName(location.getBuildingName());
+			myLocation.setSpeed(location.getSpeed());
+			myLocation.setSatelliteNumber(location.getSatelliteNumber());
+			myLocation.setAltitude(location.getAltitude());
+			myLocation.setOperators(location.getOperators());
+			
+		}
+
+		private void uploadMyLocation(BDLocation location) {
+			String tmp = location.getProvince() + location.getCity()
+					+ location.getDistrict() + location.getStreet();
+			tmp = tmp.replace("null", "");
+			final String address = tmp;
+//			Log.e(TAG, address);
+			final String latitude = location.getLatitude() + "";
+			final String longitude = location.getLongitude() + "";
+			final String description = location.getLocationDescribe();
+
+			if (failedUpload || (location.getLatitude() != myLocation.getLatitude()
+					|| location.getLongitude() != myLocation.getLongitude())) {
+
+				Listener<String> listener =new Response.Listener<String>() {
+
+					@Override
+					public void onResponse(String response) {
+						JSONObject jsonObject;
+						try {
+							jsonObject = new JSONObject(response);
+							Log.e(TAG, jsonObject.getString("msg")+address+latitude);
+							failedUpload = false;
+						} catch (JSONException e) {
+							e.printStackTrace();
+							failedUpload = true;
+						}
+					}
+				};
+				ErrorListener errorListener = new Response.ErrorListener() {
+ 
+					@Override
+					public void onErrorResponse(VolleyError error) {
+						Log.e(TAG, "上传地址失败"+address);
+						failedUpload = true;
+					}
+				};
+				Map<String, String> map = new HashMap<String, String>();
+				map.put("address", address);
+				map.put("latitude", latitude);
+				map.put("longitude", longitude);
+				map.put("description", description);
+				
+				MyApplication.getMyVolley().addPostStringRequest(MyURL.UPLOAD_LOCATION_URL, listener, errorListener, map, TAG);
+			}
+			
+		}
+	}
+
+
+	public static LocationClientOption getDefaultLocationClientOption() {
+		LocationClientOption mOption = new LocationClientOption();
+		mOption.setLocationMode(LocationMode.Hight_Accuracy);// 可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
+		mOption.setCoorType("bd09ll");// 可选，默认gcj02，设置返回的定位结果坐标系，如果配合百度地图使用，建议设置为bd09ll;
+		mOption.setScanSpan(5000);// 可选，默认0，即仅定位一次，设置发起定位请求的间隔需要大于等于1000ms才是有效的
+		mOption.setIsNeedAddress(true);// 可选，设置是否需要地址信息，默认不需要
+		mOption.setIsNeedLocationDescribe(true);// 可选，设置是否需要地址描述
+		mOption.setNeedDeviceDirect(true);// 可选，设置是否需要设备方向结果
+		mOption.setLocationNotify(true);// 可选，默认false，设置是否当gps有效时按照1S1次频率输出GPS结果
+		mOption.setIgnoreKillProcess(true);// 可选，默认true，定位SDK内部是一个SERVICE，并放到了独立进程，设置是否在stop的时候杀死这个进程，默认不杀死
+		mOption.setIsNeedLocationDescribe(true);// 可选，默认false，设置是否需要位置语义化结果，可以在BDLocation.getLocationDescribe里得到，结果类似于“在北京天安门附近”
+		mOption.setIsNeedLocationPoiList(true);// 可选，默认false，设置是否需要POI结果，可以在BDLocation.getPoiList里得到
+		mOption.SetIgnoreCacheException(false);// 可选，默认false，设置是否收集CRASH信息，默认收集
+		return mOption;
+	}
+}

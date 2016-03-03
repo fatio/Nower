@@ -1,0 +1,102 @@
+package com.project.enjoyit.entity;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+
+
+
+public class User {
+	private String token;
+	private String username;
+	private String password;
+	private int sex;
+	private String mood;
+	private int age;
+	private int state;
+	private String phone;
+	private Date reg_time;
+	
+	public void updateFromJSONObject(JSONObject jsonObject) throws JSONException{
+		username = jsonObject.getString("username");
+		sex = jsonObject.getInt("sex");
+		mood = jsonObject.getString("mood");
+		age = jsonObject.getInt("age");
+		state = jsonObject.getInt("state");
+		phone = jsonObject.getString("phone");
+		setReg_time(jsonObject.getString("reg_time"));
+	}
+	
+	public String getReg_time(){
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");  
+		String t = "";
+        if (reg_time != null) {
+        	t =format.format(reg_time);
+        }  
+        return t;
+	}
+	public String getReg_time1(){
+		SimpleDateFormat format = new SimpleDateFormat("yyyyƒÍMM‘¬dd»’");  
+		String t = "";
+        if (reg_time != null) {
+        	t =format.format(reg_time);
+        }  
+        return t;
+	}
+	public void setReg_time(String reg_time){
+		this.reg_time = new Date(reg_time);
+	}
+	
+	public String getToken() {
+		return token;
+	}
+	public void setToken(String token) {
+		this.token = token.replace("=", "%3D");
+	}
+	public String getUsername() {
+		return username;
+	}
+	public void setUsername(String username) {
+		this.username = username;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public int getSex() {
+		return sex;
+	}
+	public void setSex(int sex) {
+		this.sex = sex;
+	}
+	public String getMood() {
+		return mood;
+	}
+	public void setMood(String mood) {
+		this.mood = mood;
+	}
+	public int getAge() {
+		return age;
+	}
+	public void setAge(int age) {
+		this.age = age;
+	}
+	public int getState() {
+		return state;
+	}
+	public void setState(int state) {
+		this.state = state;
+	}
+	public String getPhone() {
+		return phone;
+	}
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+	
+}

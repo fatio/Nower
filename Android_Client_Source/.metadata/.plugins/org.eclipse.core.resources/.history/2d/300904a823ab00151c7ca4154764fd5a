@@ -1,0 +1,34 @@
+package com.project.enjoyit;
+
+import com.android.volley.toolbox.NetworkImageView;
+import com.rxy.edittextmodel_master.ClearableEditText;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Button;
+
+
+public class LoginActivity extends Activity {
+	private static final String TAG = "LoginActivity";
+
+	private ClearableEditText etUsername;
+	private ClearableEditText etPassword;
+	private Button btRegister;
+	private Button btLogin;
+	private NetworkImageView niv_head;
+
+	private static final String DefaultAccountFileName = "DefaultAccount";
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);//»•µÙ±ÍÃ‚¿∏ 
+        setContentView(R.layout.activity_login);
+        
+        initView();
+    }
+
+
+
+}
